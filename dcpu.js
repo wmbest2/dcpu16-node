@@ -127,18 +127,40 @@ operations = {
         operands(aaa).value ^= operands(bbb).value; 
     },
     12: function(aaa, bbb) { //IFE
-        registers.PC.value += operands(aaa).value == operands(bbb).value ? 0 : 1; 
+        if (operands(aaa).value != operands(bbb).value) {
+            dcpu_skip(); 
+        }
     },
     13: function(aaa, bbb) { //IFN
-        registers.PC.value += operands(aaa).value != operands(bbb).value ? 0 : 1; 
+        if (operands(aaa).value == operands(bbb).value) {
+            dcpu_skip(); 
+        }
     },
     14: function(aaa, bbb) { //IFG
-        registers.PC.value += operands(aaa).value > operands(bbb).value ? 0 : 1; 
+        if (operands(aaa).value <= operands(bbb).value) {
+            dcpu_skip(); 
+        }
     },
     15: function(aaa, bbb) { //IFB
-        registers.PC.value += (operands(aaa).value & operands(bbb).value) ? 0 : 1; 
+        if ((operands(aaa).value & operands(bbb).value) == 0) {
+            dcpu_skip(); 
+        }
     },
 };
+
+skip = function(opr) {
+    if ((opr >= 0x10 && opr <= 0x17) ||
+        (opr >= 0x1e && opr <= 0x1f)) {
+        registers.PC.value++;
+    }
+}
+
+dcpu_skip = function() {
+    memval = memory[registers.PC.value++].value;
+    skip(getBBB(memval));
+    if (memval & 0xf == 0)
+        skip(getAAA(memval) & 0xffff);
+}
 
 module.exports.init = function(instructions) {
     console.log("INIT");
