@@ -71,7 +71,7 @@ var getOp = function(value) {
 non_standard = {
     0: function(aaa) {},
     1: function(aaa) {
-        console.log("JSR");
+        //console.log("JSR");
         operands(26).value = registers.PC.value;
         registers.PC.value = operands(aaa).value;
     },
@@ -82,18 +82,18 @@ operations = {
         non_standard[aaa](bbb);
     },
     1: function(aaa, bbb) { //SET
-        console.log("SET");
+        //console.log("SET");
         opaaa = operands(aaa);
         opbbb = operands(bbb);
         opaaa.value = opbbb.value; 
     },
     2: function(aaa, bbb) { //ADD
-        console.log("ADD");
+        //console.log("ADD");
         opaaa = operands(aaa);
         opaaa.value += operands(bbb).value; 
     },
     3: function(aaa, bbb) { //SUB
-        console.log("SUB");
+        //console.log("SUB");
         opaaa = operands(aaa);
         opaaa.value -= operands(bbb).value; 
     },
@@ -163,7 +163,7 @@ dcpu_skip = function() {
 }
 
 module.exports.init = function(instructions) {
-    console.log("INIT");
+    //console.log("INIT");
     if (instructions !== undefined) {
         module.exports.program_len = instructions.length;
     }
@@ -188,13 +188,6 @@ module.exports.run = function(step_cb, video_cb, input_cb) {
     while (registers.PC.value < module.exports.program_len) {
         step(step_cb, video_cb, input_cb);
     }
-}
-
-module.exports.onStep = function() {
-    console.log("MEM: " + memval);
-    console.log('OP : ' + getOp(memval));
-    console.log('AAA: ' + getAAA(memval));
-    console.log('BBB: ' + getBBB(memval));
 }
 
 module.exports.logRegisters = function() {
