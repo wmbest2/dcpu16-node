@@ -173,20 +173,20 @@ module.exports.init = function(instructions) {
     }
 }
 
-var step = function() {
+var step = function(step_cb, video_cb, input_cb) {
     memval = memory[registers.PC.value].value;
     registers.PC.value++;
 
     operations[getOp(memval)](getAAA(memval), getBBB(memval));
 
-    module.exports.onStep();
+    if (step_cb) {
+        step_cb();
+    }
 }
 
-module.exports.run = function() {
-    console.log("PC : " + registers.PC.value);
-    console.log("RUN");
+module.exports.run = function(step_cb, video_cb, input_cb) {
     while (registers.PC.value < module.exports.program_len) {
-        step();
+        step(step_cb, video_cb, input_cb);
     }
 }
 
