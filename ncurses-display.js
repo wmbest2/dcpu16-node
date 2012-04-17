@@ -17,13 +17,12 @@ module.exports.init = function(memory, start_value) {
     pair = 0;
     colors = nc.colorPair(pair, get_color(0), get_color(7));
     win.attrset(colors);
-    nc.showCursor = false;
 
 }
 
 get_color = function(bits) {
-    bits = bits % 8;
-
+    bits = bits
+    
     switch(bits) {
         case 0: return nc.colors.BLACK;
         case 1: return nc.colors.BLUE;
@@ -37,19 +36,19 @@ get_color = function(bits) {
 }
 
 module.exports.update = function() {
-    var y = 0;
-    for (y = 0; y < h; ++y) {
-        for (x = 0; x < w; ++x) {
-        mem_loc = (x * w) + y;
-        memval = mem[mem_loc + start].value;
+    for (i = 0; i < w * h; ++i) {
+        mem_loc = i + start;
+        y = i % w;
+        x = Math.floor(i / h);
+        
+        memval = mem[mem_loc].value;
+        win.print(0,0, memval.toString(16) + "    ");
         d = memval & 0x007f;
         b = (memval & 0x0780) >> 7;
         f = (memval & 0x7800) >> 11;
-        if (f != b) {
-            pair = 1;
-            colors = nc.colorPair(pair, get_color(f), get_color(b));
-        }
-        win.attrset(colors);
+        
+        win.attrset(nc.colorPair(1, get_color(f), get_color(b)));
+
         blink = (memval & 0x8000) >> 15;
         
         if (blink == 1) {
@@ -59,9 +58,8 @@ module.exports.update = function() {
         }
 
         win.print(x + 1, y + 1, String.fromCharCode(d));
-        win.refresh();
-        }
     }
+    win.refresh();
 }
 
 module.exports.set = function(x, y, string) {
@@ -70,6 +68,11 @@ module.exports.set = function(x, y, string) {
     win.attrset(colors);
 
     win.print(x, y, string);
+}
+
+module.exports.clear = function() {
+    win.clear();
+    win.frame();
 }
 
 module.exports.reset = function() {

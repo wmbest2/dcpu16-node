@@ -14,9 +14,6 @@ module.exports.registers = registers = {
 
 module.exports.program_len = 0x0;
 module.exports.memory = memory = new Array(65536);
-for (i = 0; i < memory.length; i++) {
-    memory[i] = {value: 0x0};
-}
 
 operands = function(operand) {
     switch(operand) {
@@ -107,22 +104,18 @@ operations = function(op) {
             //console.log("SUB");
             opaaa = operands(aaa);
             opaaa.value -= operands(bbb).value; 
-            opaaa.value &= 0xffff;
         };
         case 4: return function(aaa, bbb) { //MUL
             opaaa = operands(aaa);
             opaaa.value *= operands(bbb).value; 
-            opaaa.value &= 0xffff;
         };
         case 5: return function(aaa, bbb) { //DIV
             opaaa = operands(aaa);
             opaaa.value /= operands(bbb).value; 
-            opaaa.value &= 0xffff;
         };
         case 6: return function(aaa, bbb) { //MOD
             opaaa = operands(aaa);
             opaaa.value %= operands(bbb).value; 
-            opaaa.value &= 0xffff;
         };
         case 7: return function(aaa, bbb) { //SHL
             opaaa = operands(aaa);
@@ -179,7 +172,11 @@ dcpu_skip = function() {
 }
 
 module.exports.init = function(instructions) {
-    //console.log("INIT");
+
+    for (i = 0; i < memory.length; i++) {
+        memory[i] = {value: 0x0};
+    }
+
     if (instructions !== undefined) {
         module.exports.program_len = instructions.length;
     }
@@ -189,7 +186,7 @@ module.exports.init = function(instructions) {
     }
 }
 
-module.exports.step = step = function(step_cb, video_cb, input_cb) {
+module.exports.step = step = function(step_cb, video_cb) {
     memval = memory[registers.PC.value].value;
     registers.PC.value++;
 
@@ -205,9 +202,11 @@ module.exports.step = step = function(step_cb, video_cb, input_cb) {
     }
 }
 
-module.exports.run = function(step_cb, video_cb, input_cb) {
-    while (registers.PC.value < module.exports.program_len) {
-        step(step_cb, video_cb, input_cb);
+module.exports.run = run = function(step_cb, video_cb) {
+    if (registers.PC.value < module.exports.program_len) {
+        step(step_cb, video_cb);
+
+        process.nextTick(function() {run(step_cb, video_cb);});
     }
 }
 
