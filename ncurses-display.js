@@ -43,11 +43,13 @@ module.exports.update = function() {
         mem_loc = (x * w) + y;
         memval = mem[mem_loc + start].value;
         d = memval & 0x007f;
-        f = (memval & 0x0780) >> 7;
-        b = (memval & 0x7800) >> 11;
-        if (f == b && f == 0) {
-            b = 7;
+        b = (memval & 0x0780) >> 7;
+        f = (memval & 0x7800) >> 11;
+        if (f != b) {
+            pair = 1;
+            colors = nc.colorPair(pair, get_color(f), get_color(b));
         }
+        win.attrset(colors);
         blink = (memval & 0x8000) >> 15;
         
         if (blink == 1) {
@@ -55,10 +57,6 @@ module.exports.update = function() {
         } else {
             win.attrset(nc.attrs.NORMAL);
         }
-
-        pair = 1;
-        colors = nc.colorPair(pair, get_color(f), get_color(b));
-        win.attrset(nc.colorPair(0));
 
         win.print(x + 1, y + 1, String.fromCharCode(d));
         win.refresh();

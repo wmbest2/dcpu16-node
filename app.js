@@ -54,11 +54,10 @@ on_video = function() {
 }
 
 on_input = function() {
-    //STUB
 }
 
 
-dcpu.run(on_step, on_video, on_input);
+dcpu.run(undefined, on_video, on_input);
 stdin.on('keypress', function (chunk, key) {
     if (key && key.ctrl && key.name = 'c') {
         dcpu.stop();

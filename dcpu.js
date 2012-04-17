@@ -74,7 +74,7 @@ var getBBB = function(value) {
 }
 
 var getOp = function(value) {
-    return (value & 0x0f).toString();
+    return (value & 0x0f);
 }
 
 non_standard = {
@@ -87,79 +87,81 @@ non_standard = {
     },
 };
 
-operations = {
-    0: function(aaa, bbb) {
-        non_standard[aaa](bbb);
-    },
-    1: function(aaa, bbb) { //SET
-        //console.log("SET");
-        opaaa = operands(aaa);
-        opbbb = operands(bbb);
-        opaaa.value = opbbb.value; 
-    },
-    2: function(aaa, bbb) { //ADD
-        //console.log("ADD");
-        opaaa = operands(aaa);
-        opaaa.value += operands(bbb).value; 
-    },
-    3: function(aaa, bbb) { //SUB
-        //console.log("SUB");
-        opaaa = operands(aaa);
-        opaaa.value -= operands(bbb).value; 
-        opaaa.value &= 0xffff;
-    },
-    4: function(aaa, bbb) { //MUL
-        opaaa = operands(aaa);
-        opaaa.value *= operands(bbb).value; 
-        opaaa.value &= 0xffff;
-    },
-    5: function(aaa, bbb) { //DIV
-        opaaa = operands(aaa);
-        opaaa.value /= operands(bbb).value; 
-        opaaa.value &= 0xffff;
-    },
-    6: function(aaa, bbb) { //MOD
-        opaaa = operands(aaa);
-        opaaa.value %= operands(bbb).value; 
-        opaaa.value &= 0xffff;
-    },
-    7: function(aaa, bbb) { //SHL
-        opaaa = operands(aaa);
-        opaaa.value <<= operands(bbb).value; 
-    },
-    8: function(aaa, bbb) { //SHR
-        opaaa = operands(aaa);
-        opaaa.value >>= operands(bbb).value; 
-    },
-    9: function(aaa, bbb) { //AND
-        operands(aaa).value &= operands(bbb).value; 
-    },
-    10: function(aaa, bbb) { //BOR
-        operands(aaa).value |= operands(bbb).value; 
-    },
-    11: function(aaa, bbb) { //XOR
-        operands(aaa).value ^= operands(bbb).value; 
-    },
-    12: function(aaa, bbb) { //IFE
-        if (operands(aaa).value != operands(bbb).value) {
-            dcpu_skip(); 
-        }
-    },
-    13: function(aaa, bbb) { //IFN
-        if (operands(aaa).value == operands(bbb).value) {
-            dcpu_skip(); 
-        }
-    },
-    14: function(aaa, bbb) { //IFG
-        if (operands(aaa).value <= operands(bbb).value) {
-            dcpu_skip(); 
-        }
-    },
-    15: function(aaa, bbb) { //IFB
-        if ((operands(aaa).value & operands(bbb).value) == 0) {
-            dcpu_skip(); 
-        }
-    },
+operations = function(op) {
+    switch(op) {
+        case 0: return function(aaa, bbb) {
+            non_standard[aaa](bbb);
+        };
+        case 1: return function(aaa, bbb) { //SET
+            //console.log("SET");
+            opaaa = operands(aaa);
+            opbbb = operands(bbb);
+            opaaa.value = opbbb.value; 
+        };
+        case 2: return function(aaa, bbb) { //ADD
+            //console.log("ADD");
+            opaaa = operands(aaa);
+            opaaa.value += operands(bbb).value; 
+        };
+        case 3: return function(aaa, bbb) { //SUB
+            //console.log("SUB");
+            opaaa = operands(aaa);
+            opaaa.value -= operands(bbb).value; 
+            opaaa.value &= 0xffff;
+        };
+        case 4: return function(aaa, bbb) { //MUL
+            opaaa = operands(aaa);
+            opaaa.value *= operands(bbb).value; 
+            opaaa.value &= 0xffff;
+        };
+        case 5: return function(aaa, bbb) { //DIV
+            opaaa = operands(aaa);
+            opaaa.value /= operands(bbb).value; 
+            opaaa.value &= 0xffff;
+        };
+        case 6: return function(aaa, bbb) { //MOD
+            opaaa = operands(aaa);
+            opaaa.value %= operands(bbb).value; 
+            opaaa.value &= 0xffff;
+        };
+        case 7: return function(aaa, bbb) { //SHL
+            opaaa = operands(aaa);
+            opaaa.value <<= operands(bbb).value; 
+        };
+        case 8: return function(aaa, bbb) { //SHR
+            opaaa = operands(aaa);
+            opaaa.value >>= operands(bbb).value; 
+        };
+        case 9: return function(aaa, bbb) { //AND
+            operands(aaa).value &= operands(bbb).value; 
+        };
+        case 10: return function(aaa, bbb) { //BOR
+            operands(aaa).value |= operands(bbb).value; 
+        };
+        case 11: return function(aaa, bbb) { //XOR
+            operands(aaa).value ^= operands(bbb).value; 
+        };
+        case 12: return function(aaa, bbb) { //IFE
+            if (operands(aaa).value != operands(bbb).value) {
+                dcpu_skip(); 
+            }
+        };
+        case 13: return function(aaa, bbb) { //IFN
+            if (operands(aaa).value == operands(bbb).value) {
+                dcpu_skip(); 
+            }
+        };
+        case 14: return function(aaa, bbb) { //IFG
+            if (operands(aaa).value <= operands(bbb).value) {
+                dcpu_skip(); 
+            }
+        };
+        case 15: return function(aaa, bbb) { //IFB
+            if ((operands(aaa).value & operands(bbb).value) == 0) {
+                dcpu_skip(); 
+            }
+        };
+    }
 };
 
 skip = function(opr) {
@@ -191,13 +193,13 @@ module.exports.step = step = function(step_cb, video_cb, input_cb) {
     memval = memory[registers.PC.value].value;
     registers.PC.value++;
 
-    operations[getOp(memval)](getAAA(memval), getBBB(memval));
+    operations(getOp(memval))(getAAA(memval), getBBB(memval));
 
-    if (step_cb) {
+    if (step_cb !== undefined) {
         step_cb();
     }
 
-    if (video) {
+    if (video && video_cb !== undefined) {
         video_cb();
         video = false;
     }
