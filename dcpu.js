@@ -53,11 +53,11 @@ operands = function(operand) {
     }
 };
 
-video = false;
+video = 0x0;
 
 getmem = function(value) {
     if (value >= 0x8000 && value < 0x8400) {
-        video = true;
+        video = value;
     }
     return memory[value];
 }
@@ -77,7 +77,6 @@ var getOp = function(value) {
 non_standard = {
     0: function(aaa) {},
     1: function(aaa) {
-        //console.log("JSR");
         val = operands(aaa).value
         operands(26).value = registers.PC.value;
         registers.PC.value = val;
@@ -90,10 +89,7 @@ operations = function(op) {
             non_standard[aaa](bbb);
         };
         case 1: return function(aaa, bbb) { //SET
-            //console.log("SET");
-            opaaa = operands(aaa);
-            opbbb = operands(bbb);
-            opaaa.value = opbbb.value; 
+            operands(aaa).value = operands(bbb).value; 
         };
         case 2: return function(aaa, bbb) { //ADD
             //console.log("ADD");
@@ -196,9 +192,9 @@ module.exports.step = step = function(step_cb, video_cb) {
         step_cb();
     }
 
-    if (video && video_cb !== undefined) {
-        video_cb();
-        video = false;
+    if (video != 0x0 && video_cb !== undefined) {
+        video_cb(video);
+        video = 0x0;
     }
 }
 

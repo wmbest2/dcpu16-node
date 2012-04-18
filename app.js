@@ -22,15 +22,16 @@ display.init(dcpu.memory, 0x8000);
 var on_step = function() {
 }
 
-on_video = function() {
-    process.nextTick(display.update);
+on_video = function(mem_loc) {
+    display.update(mem_loc);
+    display.refresh();
 }
 
 
 started = false;
 pc = 0x0;
 
-display.update();
+display.update_all();
 stdin.on('keypress', function (chunk, key) {
     if (key && key.ctrl && key.name == 'c') {
         dcpu.stop();

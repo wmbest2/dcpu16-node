@@ -35,38 +35,45 @@ get_color = function(bits) {
     }
 }
 
-module.exports.update = function() {
-    for (i = 0; i < w * h; ++i) {
-        mem_loc = i + start;
-        y = i % w;
-        x = Math.floor(i / h);
-        
-        memval = mem[mem_loc].value;
-        win.print(0,0, memval.toString(16) + "    ");
-        d = memval & 0x007f;
-        b = (memval & 0x0780) >> 7;
-        f = (memval & 0x7800) >> 11;
-        
-        win.attrset(nc.colorPair(1, get_color(f), get_color(b)));
-
-        blink = (memval & 0x8000) >> 15;
-        
-        if (blink == 1) {
-            win.attrset(nc.attrs.BLINK);
-        } else {
-            win.attrset(nc.attrs.NORMAL);
-        }
-
-        win.print(x + 1, y + 1, String.fromCharCode(d));
-    }
+module.exports.refresh = refresh = function() {
+    win.leaveok(true);
     win.refresh();
 }
 
-module.exports.set = function(x, y, string) {
+module.exports.update = update = function(mem_loc) {
+    y = (mem_loc - start) % w;
+    x = Math.floor((mem_loc - start) / h);
+    
+    memval = mem[mem_loc].value;
+    d = memval & 0x007f;
+    f = (memval & 0xf000) >> 12;
+    b = (memval & 0x0f00) >> 8;
+    win.print(0,0, f.toString(16));
+    
+    win.attrset(nc.colorPair(0, get_color(f), get_color(b)));
 
+    blink = (memval & 0x0080) >> 7;
+    
+    if (blink == 1) {
+        win.attrset(nc.attrs.BLINK);
+    } else {
+        win.attrset(nc.attrs.NORMAL);
+    }
+
+    win.addstr(x + 1, y + 1, String.fromCharCode(d));
+}
+
+module.exports.update_all = function() {
+    for (i = 0; i < w * h; ++i) {
+        mem_loc = i + start;
+        update(mem_loc);
+    }
+    refresh();
+}
+
+module.exports.set = function(x, y, string) {
     colors = nc.colorPair(0);
     win.attrset(colors);
-
     win.print(x, y, string);
 }
 
