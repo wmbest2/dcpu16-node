@@ -63,7 +63,7 @@ getmem = function(value) {
 }
 
 var getAAA = function(value) {
-    return ((value >> 4) & 0x3f);
+    return ((value >> 4) & 0x3f); 
 }
 
 var getBBB = function(value) {
@@ -74,19 +74,24 @@ var getOp = function(value) {
     return (value & 0x0f);
 }
 
-non_standard = {
-    0: function(aaa) {},
-    1: function(aaa) {
-        val = operands(aaa).value
-        operands(26).value = registers.PC.value;
-        registers.PC.value = val;
-    },
+non_standard = function(val) {
+    switch(val) {
+        case 0: return function(aaa) {};
+        case 1: return function(aaa) {
+            val = operands(aaa).value
+            operands(26).value = registers.PC.value;
+            registers.PC.value = val;
+        };
+        case 32: return function(aaa) {
+            module.exports.logRegisters();
+        };
+    }
 };
 
 operations = function(op) {
     switch(op) {
         case 0: return function(aaa, bbb) {
-            non_standard[aaa](bbb);
+            non_standard(aaa)(bbb);
         };
         case 1: return function(aaa, bbb) { //SET
             operands(aaa).value = operands(bbb).value; 
