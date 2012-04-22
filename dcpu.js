@@ -88,6 +88,20 @@ non_standard = function(val) {
     }
 };
 
+skip = function(opr) {
+    if ((opr >= 0x10 && opr <= 0x17) ||
+        (opr >= 0x1e && opr <= 0x1f)) {
+        registers.PC.value++;
+    }
+}
+
+dcpu_skip = function() {
+    memval = memory[registers.PC.value++].value;
+    skip(getBBB(memval));
+    if (memval & 0xf == 0)
+        skip(getAAA(memval) & 0xffff);
+}
+
 operations = function(op) {
     switch(op) {
         case 0: return function(aaa, bbb) {
@@ -157,20 +171,6 @@ operations = function(op) {
         };
     }
 };
-
-skip = function(opr) {
-    if ((opr >= 0x10 && opr <= 0x17) ||
-        (opr >= 0x1e && opr <= 0x1f)) {
-        registers.PC.value++;
-    }
-}
-
-dcpu_skip = function() {
-    memval = memory[registers.PC.value++].value;
-    skip(getBBB(memval));
-    if (memval & 0xf == 0)
-        skip(getAAA(memval) & 0xffff);
-}
 
 module.exports.init = function(instructions) {
 
