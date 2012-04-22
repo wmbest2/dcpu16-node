@@ -11,8 +11,9 @@ var next_word = "next_word";
 var next_word_mem = "\\[" + next_word + "\\]";
 var hex = "0[x][a-f0-9]+";
 var hex_mem = "\\[(" + hex + ")\\]";
-var hex_register_mem = "(?:\\[" + hex + "\\s*\\+\\s*" + register + "\\]|\\[" + register + "\\s*\\+\\s*" + hex + "\\])";
-var label_register_mem = "(?:\\[" + label + "\\s*\\+\\s*" + register + "\\]|\\[" + register + "\\s*\\+\\s*" + label + "\\])";
+var hex_register_mem = "(?:(?:\\[(" + hex + ")\\s*\\+\\s*(" + register + ")\\]))";
+var register_hex_mem = "(?:(?:\\[(" + register + ")\\s*\\+\\s*(" + hex + ")\\]))";
+var label_register_mem = "(?:(?:\\[("+ register + "|" + label + ")\\s*\\+\\s*(" + label + "|" + register + ")\\]))";
 var text = "(?:(?:\\\"|')(.+)(?:\\\"|'))";
 
 var register_regex = new RegExp("^"+register+"$", 'i');
@@ -22,6 +23,7 @@ var next_word_mem_regex = new RegExp(next_word_mem, 'i');
 var hex_regex = new RegExp("^"+hex+"$", "i");
 var hex_mem_regex = new RegExp("^"+hex_mem+"$", "i");
 var hex_register_mem_regex = new RegExp("^"+hex_register_mem+"$", "i");
+var register_hex_mem_regex = new RegExp("^"+register_hex_mem+"$", "i");
 var label_register_mem_regex = new RegExp("^"+label_register_mem+"$", "i");
 var int_regex = new RegExp(integer);
 var label_regex = new RegExp("^"+label+"$");
@@ -144,11 +146,18 @@ handleOperand = function(result, operand, bitshift) {
     var v = 0;
     if (register_regex.test(operand)) {
         register = register_regex.exec(operand)[0].toLowerCase();
-        console.log(register + "  " + value[register]);
         v = value[register] << bitshift;
     } else if (register_mem_regex.test(operand)) {
         register = register_mem_regex.exec(operand)[1];
         v = value[register + "_mem"] << bitshift;
+    } else if (hex_register_mem_regex.test(operand)) {
+        register = hex_register_mem_regex.exec(operand);
+        v = value[register[2] + "_next"] << bitshift;
+        result[bitshift == 4 ? 1 : 2] = parseInt(register[1]);
+    } else if (register_hex_mem_regex.test(operand)) {
+        register = register_hex_mem_regex.exec(operand);
+        v = value[register[1] + "_next"] << bitshift;
+        result[bitshift == 4 ? 1 : 2] = parseInt(register[2]);
     } else if (int_regex.test(operand)) {
         integer = parseInt(int_regex.exec(operand)[0]);
         if (integer <= 0x1f) {
@@ -156,7 +165,6 @@ handleOperand = function(result, operand, bitshift) {
         } else {
             v = value['next_word'] << bitshift;
             result[bitshift == 4 ? 1 : 2] = integer;
-
         }
     } else if (hex_regex.test(operand)) {
         integer = parseInt(hex_regex.exec(operand)[0]);
@@ -166,6 +174,14 @@ handleOperand = function(result, operand, bitshift) {
             v = value['next_word'] << bitshift;
             result[bitshift == 4 ? 1 : 2] = integer;
         }
+    } else if (pop_push_regex.test(operand)) {
+        p = pop_push_regex.exec(operand)[0];
+        console.log(p);
+        v = value[p] << bitshift;
+    } else if (hex_mem_regex.test(operand)) {
+        hex = hex_mem_regex.exec(operand)[1];
+        v = value["next_word_mem"] << bitshift;
+        result[bitshift == 4 ? 1 : 2] = parseInt(hex);
     } else if (label_regex.test(operand)) {
         l = label_regex.exec(operand)[0];
         if (labels[l] !== undefined) {
@@ -239,6 +255,17 @@ handleOpcodeSecondPass = function(op, operands) {
         result[0] = 0xd;
         result = handleOperand(result, opr_array[0], 4);
         result = handleOperand(result, opr_array[1], 10);
+    } else if (op == 'IFG') {
+        result[0] = 0xe;
+        result = handleOperand(result, opr_array[0], 4);
+        result = handleOperand(result, opr_array[1], 10);
+    } else if (op == 'IFB') {
+        result[0] = 0xf;
+        result = handleOperand(result, opr_array[0], 4);
+        result = handleOperand(result, opr_array[1], 10);
+    } else if (op == 'JSR') {
+        result[0] = 0x1 << 4;
+        result = handleOperand(result, opr_array[0], 10);
     } else {
         error(op + " NOT HANDLED");
     }
